@@ -52,12 +52,13 @@ enum ETrigger{
   kSingleEG5noHF,
   kSingleEG3singleTrack,
   kSingleMuOpenNoHF,
+  kSingleMu0NoHF,
   nTriggers
 };
 
 const vector<ETrigger> triggers = {
   kDoubleEG2noHF, kSingleEG3noHF, kSingleEG5noHF,
-  kSingleEG3singleTrack, kSingleMuOpenNoHF,
+  kSingleEG3singleTrack, kSingleMuOpenNoHF, kSingleMu0NoHF,
 };
 
 const map<ETrigger, string> triggerNames = {
@@ -66,6 +67,7 @@ const map<ETrigger, string> triggerNames = {
   { kSingleEG5noHF       , "HLT_HIUPC_SingleEG5_NotMBHF2AND_v1"                            },
   { kSingleEG3singleTrack, "HLT_HIUPC_SingleEG3_BptxAND_SinglePixelTrack_MaxPixelTrack_v1" },
   { kSingleMuOpenNoHF    , "HLT_HIUPC_SingleMuOpen_NotMBHF2AND_v1"                         },
+  { kSingleMu0NoHF    , "HLT_HIUPC_SingleMu0_NotMBHF2AND_v1"                               },
 };
   
 enum EDataset{

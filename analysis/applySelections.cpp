@@ -150,9 +150,11 @@ bool IsPassingAllLbLCuts(Event &event, bool doHighAco)
 bool IsGoodForSingleMuon(Event &event)
 {
   // Check trigger
-  if(!event.HasTrigger(kSingleMuOpenNoHF)) return false;
-  
-  return false;
+  if(!(event.HasTrigger(kSingleMuOpenNoHF) or event.HasTrigger(kSingleMu0NoHF))) return false;
+  if(!(event.GetPhysObjects(kMuon).size() >= 1)) return false;
+  if(!(event.GetPhysObjects(kMuon)[0]->GetPt() > 1.0)) return false;
+  if(!(fabs(event.GetPhysObjects(kMuon)[0]->GetEta()) < 2.4)) return false;
+  return true;  
 }
 
 /// checks if event has muon and electron (opposite sign)
@@ -167,7 +169,7 @@ bool IsGoodForMuEle(Event &event)
   if(event.GetPhysObjects(kMuon)[0]->GetCharge() ==
      event.GetPhysObjects(kElectron)[0]->GetCharge()) return false;
   
-  return true;
+  return false;
 }
 
 /// checks if event has di muon (opposite sign)
@@ -180,7 +182,7 @@ bool IsGoodForMuMu(Event &event)
   if(event.GetPhysObjects(kMuon)[0]->GetCharge() ==
      event.GetPhysObjects(kMuon)[1]->GetCharge()) return false;
   
-  return true;
+  return false;
 }
 
 
@@ -240,6 +242,7 @@ int main(int argc, char* argv[])
     string setupFilePath = argv[2];
     sampleName = argv[3];
     if(flag == "TauTau"){
+      storeHLTtrees = true;
       vector<string> argList;
       ifstream file(setupFilePath);
       string str;

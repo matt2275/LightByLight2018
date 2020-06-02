@@ -10,9 +10,9 @@ config = "/afs/cern.ch/user/m/mnickel/private/LightByLight2018/analysis/configs/
 input_file = sys.argv[1]
 ending = input_file[(input_file.find("HiForestAOD") + len("HiForestAOD")):]
 
-sig_mu = "/eos/user/m/mnickel/TauTau/data/data_sig_mu"
-mu_ele = "/eos/user/m/mnickel/TauTau/data/data_mu_ele"
-mu_mu = "/eos/user/m/mnickel/TauTau/data/data_mu_mu"
+sig_mu = "/eos/user/m/mnickel/TauTau/BDT_data/BDT_DATA"
+mu_ele = "/eos/user/m/mnickel/TauTau/EMPTY_DATA/EMPTY_MUELE"
+mu_mu = "/eos/user/m/mnickel/TauTau/EMPTY_DATA/EMPTY_MUMU"
 
 f = open(runfile,"a")
 f.write( config + "\n")

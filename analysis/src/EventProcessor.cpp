@@ -198,17 +198,21 @@ void EventProcessor::SetupOutputTree(string outFileName)
   dirEvent[outFileName]     = outFile[outFileName]->mkdir("ggHiNtuplizer");
   dirHLT[outFileName]       = outFile[outFileName]->mkdir("hltanalysis");
   dirL1[outFileName]        = outFile[outFileName]->mkdir("l1object");
-  dirZdc[outFileName]       = outFile[outFileName]->mkdir("rechitanalyzerpp");
   
   outEventTree[outFileName] = eventTree->CloneTree(0);
   outHltTree[outFileName]   = hltTree->CloneTree(0);
   outL1Tree[outFileName]    = l1Tree->CloneTree(0);
-  outZdcTree[outFileName]   = zdcTree->CloneTree(0);
   
   outEventTree[outFileName]->Reset();
   outHltTree[outFileName]->Reset();
   outL1Tree[outFileName]->Reset();
-  outZdcTree[outFileName]->Reset();
+
+  if(zdcTree) {
+     dirZdc[outFileName]       = outFile[outFileName]->mkdir("rechitanalyzerpp");
+     outZdcTree[outFileName]   = zdcTree->CloneTree(0);
+    outZdcTree[outFileName]->Reset();
+
+   }
   
   if(pixelTree){
     dirPixel[outFileName] = outFile[outFileName]->mkdir("pixelTracks");
@@ -222,13 +226,19 @@ void EventProcessor::AddEventToOutputTree(int iEvent, string outFileName, bool s
   eventTree->GetEntry(iEvent);
   hltTree->GetEntry(iEvent);
   l1Tree->GetEntry(iEvent);
-  zdcTree->GetEntry(iEvent);
   
   outEventTree[outFileName]->Fill();
   if(saveHLTtree) outHltTree[outFileName]->Fill();
   outL1Tree[outFileName]->Fill();
-  outZdcTree[outFileName]->Fill();
+
   
+
+  if(zdcTree){
+    zdcTree->GetEntry(iEvent);
+    outZdcTree[outFileName]->Fill();
+  }
+
+
   if(pixelTree){
     long long secondaryTreeEntry = GetEntryNumber(pixelTree, runNumber, lumiSection, eventNumber);
     
@@ -249,12 +259,14 @@ void EventProcessor::SaveOutputTree(string outFileName)
   outL1Tree[outFileName]->Write();
   dirEvent[outFileName]->cd();
   outEventTree[outFileName]->Write();
-  dirZdc[outFileName]->cd();
-  outZdcTree[outFileName]->Write();
-  
   if(pixelTree){
     dirPixel[outFileName]->cd();
     outPixelTree[outFileName]->Write();
+  }
+
+  if(zdcTree){
+    dirZdc[outFileName]->cd();
+    outZdcTree[outFileName]->Write();
   }
   
   outFile[outFileName]->Close();
