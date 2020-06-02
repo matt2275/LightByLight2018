@@ -1,29 +1,34 @@
 #!/bin/bash
 
-echo "Starting runPrepareBasicPlots"
-
 # ./runPrepareBasicPlots.sh fileNumber sampleType configType
+
+echo "Starting runPrepareBasicPlots"
 
 configPath=""
 suffix=""
+inputPath=""
+outputPath=""
+sampleName=""
+basePath="/eos/cms/store/group/phys_diffraction/lbyl_2018"
+
+##
+# Select config file
+##
 
 if [ $3 -eq 0 ]
 then
 # default
   configPath="/afs/cern.ch/work/j/jniedzie/private/LightByLight2018/analysis/configs/preparePlots_default.md"
-  suffix="_default"
+  suffix="_default_inverted"
 elif [ $3 -eq 1 ]
 then
   configPath="/afs/cern.ch/work/j/jniedzie/private/LightByLight2018/analysis/configs/preparePlots_looserHINPhotonHESigma.md"
   suffix="_looserHINPhotonHESigma"
 fi
 
-# for the data:
-inputPath=""
-outputPath=""
-sampleName=""
-
-basePath="/eos/cms/store/group/phys_diffraction/lbyl_2018"
+##
+# Select sample type
+##
 
 if [ $2 -eq 0 ]
 then
@@ -59,6 +64,8 @@ then
 #  inputPath="${basePath}/mc_qed/ntuples_superchic_1034/ntuples_sc_1034/ntuples_sc_1034/191113_105005/0000/HiForestAOD_LbyL_full_sample_lbyl_reco_${1}.root"
   outputPath="${basePath}/analysis/basicPlots/basicPlots_mc_qed_sl${suffix}"
 fi
+
+
 
 mkdir -p $outputPath
 
