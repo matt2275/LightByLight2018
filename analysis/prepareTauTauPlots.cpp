@@ -9,13 +9,14 @@
 #include "EventDisplay.hpp"
 #include "Logger.hpp"
 
+
 string configPath = "configs/preparePlots_default.md";
 string outputPath = "results/basicPlots_test.root";
 
 bool saveCalosFailingNEE = true;
 bool saveTriphotonHists = true;
 bool checkTriggers = false;
-
+bool saveTree = true;
 int nThreePhotonEvents = 0;
 
 
@@ -72,6 +73,125 @@ vector<tuple<string, int, double, double>> histParams = {
   
 };
 
+float dilepton_acoplanarity_BV;
+vector<float> lepton_pt_BV;
+vector<float> lepton_eta_BV;
+vector<float> lepton_phi_BV;
+float dilepton_mass_BV;
+float dilepton_rapidity_BV;
+float dilepton_pt_BV;
+  
+float nTracks_BV;
+vector<float> track_pt_BV;
+vector<float> track_eta_BV;
+vector<float> track_phi_BV;
+vector<float> track_missing_hits_BV;
+vector<float> track_valid_hits_BV;
+vector<float> track_purity_BV;
+vector<float> track_charge_BV;
+vector<float> track_chi2_BV;
+vector<float> track_dxy_BV;
+vector<float> track_dz_BV;
+vector<float> track_dxy_over_sigma_BV;
+vector<float> track_dz_over_sigma_BV;
+  
+vector<float> track_dxy_from_bs_BV;
+vector<float> track_dz_from_bs_BV;
+  
+vector<float> track_dxy_1_track_BV;
+vector<float> track_dxy_2_track_BV;
+vector<float> track_dxy_3_track_BV;
+vector<float> track_dxy_ge4_track_BV;
+  
+vector<float> track_dz_1_track_BV;
+vector<float> track_dz_2_track_BV;
+vector<float> track_dz_3_track_BV;
+vector<float> track_dz_ge4_track_BV;
+
+vector<float> track_vx_BV;
+vector<float> track_vy_BV;
+vector<float> track_vz_BV;
+
+void ResetBranchVariables(){
+	dilepton_acoplanarity_BV = -999999;
+	lepton_pt_BV.clear();
+	lepton_eta_BV.clear();
+	lepton_phi_BV.clear();
+	dilepton_mass_BV = -999999;
+	dilepton_rapidity_BV = -999999;
+	dilepton_pt_BV = -999999;
+	  
+	nTracks_BV = -999999;
+	track_pt_BV.clear();
+	track_eta_BV.clear();
+	track_phi_BV.clear();
+	track_missing_hits_BV.clear();
+	track_valid_hits_BV.clear();
+	track_purity_BV.clear();
+	track_charge_BV.clear();
+	track_chi2_BV.clear();
+	track_dxy_BV.clear();
+	track_dz_BV.clear();
+	track_dxy_over_sigma_BV.clear();
+	track_dz_over_sigma_BV.clear();
+	  
+	track_dxy_from_bs_BV.clear();
+	track_dz_from_bs_BV.clear();
+	  
+	track_dxy_1_track_BV.clear();
+	track_dxy_2_track_BV.clear();
+	track_dxy_3_track_BV.clear();
+	track_dxy_ge4_track_BV.clear();
+	  
+	track_dz_1_track_BV.clear();
+	track_dz_2_track_BV.clear();
+	track_dz_3_track_BV.clear();
+	track_dz_ge4_track_BV.clear();
+
+	track_vx_BV.clear();
+	track_vy_BV.clear();
+	track_vz_BV.clear();	
+}
+
+void InitializeBranches(TTree *Tree){
+	
+	Tree->Branch("dilepton_acoplanarity" , &dilepton_acoplanarity_BV);
+	Tree->Branch("lepton_pt" , &lepton_pt_BV);
+	Tree->Branch("lepton_eta" , &lepton_eta_BV);
+	Tree->Branch("lepton_phi" , &lepton_phi_BV);
+	Tree->Branch("dilepton_mass" , &dilepton_mass_BV);
+	Tree->Branch("dilepton_rapidity" , &dilepton_rapidity_BV);
+	Tree->Branch("dilepton_pt" , &dilepton_pt_BV);
+	Tree->Branch("nTracks" , &nTracks_BV);
+	Tree->Branch("track_pt" , &track_pt_BV);
+	Tree->Branch("track_eta" , &track_eta_BV);
+	Tree->Branch("track_phi" , &track_phi_BV);
+	Tree->Branch("track_missing_hits" , &track_missing_hits_BV);
+	Tree->Branch("track_valid_hits" , &track_valid_hits_BV);
+	Tree->Branch("track_purity" , &track_purity_BV);
+	Tree->Branch("track_charge" , &track_charge_BV);
+	Tree->Branch("track_chi2" , &track_chi2_BV);
+	Tree->Branch("track_dxy" , &track_dxy_BV);
+	Tree->Branch("track_dz" , &track_dz_BV);
+	Tree->Branch("track_dxy_over_sigma" , &track_dxy_over_sigma_BV);
+	Tree->Branch("track_dz_over_sigma" , &track_dz_over_sigma_BV);
+	Tree->Branch("track_dxy_from_bs" , &track_dxy_from_bs_BV);
+	Tree->Branch("track_dz_from_bs" , &track_dz_from_bs_BV);
+	Tree->Branch("track_dxy_1_track" , &track_dxy_1_track_BV);
+	Tree->Branch("track_dxy_2_track" , &track_dxy_2_track_BV);
+	Tree->Branch("track_dxy_3_track" , &track_dxy_3_track_BV);
+	Tree->Branch("track_dxy_ge4_track" , &track_dxy_ge4_track_BV);
+	Tree->Branch("track_dz_1_track" , &track_dz_1_track_BV);
+	Tree->Branch("track_dz_2_track" , &track_dz_2_track_BV);
+	Tree->Branch("track_dz_3_track" , &track_dz_3_track_BV);
+	Tree->Branch("track_dz_ge4_track" , &track_dz_ge4_track_BV);
+	Tree->Branch("track_vx" , &track_vx_BV);
+	Tree->Branch("track_vy" , &track_vy_BV);
+	Tree->Branch("track_vz", &track_vz_BV);
+	
+	
+}
+
 bool endsWith(const std::string &mainStr, const std::string &toMatch)
 {
    if(mainStr.size() >= toMatch.size() &&
@@ -101,7 +221,6 @@ void fillDimuonHists(Event &event, const map<string, TH1D*> &hists, string datas
   hists.at("dilepton_pt_"       +suffix+datasetName)->Fill(dimuon.Pt());
   
 }
-
 
 void fillTracksHists(Event &event, const map<string, TH1D*> &hists, EDataset dataset, string suffix="")
 {
@@ -171,6 +290,91 @@ void fillTauTauHistograms(Event &event, const map<string, TH1D*> &hists, EDatase
   }
 }
 
+void fillMuonBranchVariables(Event &event)
+{
+  for(auto muon : event.GetPhysObjects(kMuon)){
+    lepton_pt_BV.push_back(muon->GetPt());
+    lepton_eta_BV.push_back(muon->GetEta());
+    lepton_phi_BV.push_back(muon->GetPhi());
+  }
+}
+
+void fillDimuonBranchVariables(Event &event)
+{
+  
+  TLorentzVector dimuon = physObjectProcessor.GetDimuon(*event.GetPhysObjects(kMuon)[0],
+                                                                *event.GetPhysObjects(kMuon)[1]);
+  
+  dilepton_mass_BV = (dimuon.M());
+  dilepton_rapidity_BV = (dimuon.Rapidity());
+  dilepton_pt_BV = (dimuon.Pt());
+  
+}
+
+
+void fillTracksBranchVariables(Event &event, EDataset dataset)
+{
+  
+  int nTracks = (int)event.GetPhysObjects(kGeneralTrack).size();
+  
+  nTracks_BV = nTracks;
+  
+  
+  for(auto track : event.GetPhysObjects(kGeneralTrack)){
+    double trackPt = track->GetPt();
+    track_pt_BV.push_back(trackPt);
+    track_eta_BV.push_back(track->GetEta());
+    track_phi_BV.push_back(track->GetPhi());
+    
+    track_missing_hits_BV.push_back(track->GetNmissingHits());
+    track_valid_hits_BV.push_back(track->GetNvalidHits());
+    track_purity_BV.push_back(track->GetPurity());
+    track_charge_BV.push_back(track->GetCharge());
+    track_chi2_BV.push_back(track->GetChi2());
+    track_dxy_BV.push_back(track->GetDxy());
+    
+    track_dxy_from_bs_BV.push_back(track->GetXYdistanceFromBeamSpot(dataset));
+    track_dz_from_bs_BV.push_back(track->GetZdistanceFromBeamSpot(dataset));
+    
+    if(nTracks==1){
+      track_dxy_1_track_BV.push_back(track->GetDxy());
+      track_dz_1_track_BV.push_back(track->GetDz());
+    }
+    if(nTracks==2){
+      track_dxy_2_track_BV.push_back(track->GetDxy());
+      track_dz_2_track_BV.push_back(track->GetDz());
+    }
+    if(nTracks==3){
+      track_dxy_3_track_BV.push_back(track->GetDxy());
+      track_dz_3_track_BV.push_back(track->GetDz());
+    }
+    if(nTracks>=4){
+      track_dxy_ge4_track_BV.push_back(track->GetDxy());
+      track_dz_ge4_track_BV.push_back(track->GetDz());
+    }
+    
+    track_dz_BV.push_back(track->GetDz());
+    track_dxy_over_sigma_BV.push_back(fabs(track->GetDxy()/track->GetDxyErr()));
+    track_dz_over_sigma_BV.push_back(fabs(track->GetDz()/track->GetDzErr()));
+    track_vx_BV.push_back(track->GetVertexX());
+    track_vy_BV.push_back(track->GetVertexY());
+    track_vz_BV.push_back(track->GetVertexZ());
+  }
+  
+}
+
+void fillTauTauBranchVariables(Event &event, EDataset dataset)
+{
+  
+  double aco = physObjectProcessor.GetAcoplanarity(*event.GetPhysObjects(kMuon)[0],
+                                                   *event.GetPhysObjects(kMuon)[1]);
+  dilepton_acoplanarity_BV = (aco);
+  fillMuonBranchVariables(event);
+  fillDimuonBranchVariables(event);
+  fillTracksBranchVariables(event, dataset);
+  
+}
+
 /// Creates histograms, cut through and event counters for given dataset name, for each
 /// histogram specified in `histParams` vector.
 void InitializeHistograms(map<string, TH1D*> &hists, string datasetType, string suffix="")
@@ -207,7 +411,8 @@ int main(int argc, char* argv[])
 
   map<string, TH1D*> hists;
   TFile *outFile = new TFile(outputPath.c_str(), "recreate");
-  
+  TTree *outTree = new TTree("outTree","Tree with Histogram Variables");
+  InitializeBranches(outTree);
   
   if(inputPath==""){
     for(auto dataset : datasetsToAnalyze){
@@ -226,6 +431,7 @@ int main(int argc, char* argv[])
       auto events = make_unique<EventProcessor>(inFileNames.at(dataset), dataset);
 
       for(int iEvent=0; iEvent<events->GetNevents(); iEvent++){
+		ResetBranchVariables();
         if(iEvent%1000 == 0)  Log(1)<<"Processing event "<<iEvent<<"\n";
         if(iEvent%10000 == 0) Log(0)<<"Processing event "<<iEvent<<"\n";
         if(iEvent >= config.params("maxEvents")) break;
@@ -272,10 +478,12 @@ int main(int argc, char* argv[])
 		  if(iEvent%1000 == 0)  Log(1)<<"Processing event "<<iEvent<<"\n";
 		  if(iEvent%10000 == 0) Log(0)<<"Processing event "<<iEvent<<"\n";
 		  if(iEvent >= config.params("maxEvents")) break;
-		  
+		  ResetBranchVariables();
 		  auto event = events->GetEvent(iEvent);
 		  
 		  fillTauTauHistograms(*event, hists, dataset, suffixes);
+		  fillTauTauBranchVariables(*event, dataset);
+		  outTree->Fill();
 		}
 	}
     if (endsWith(inputPath, "txt")){
@@ -306,11 +514,13 @@ int main(int argc, char* argv[])
 			  if(iEvent%1000 == 0)  Log(1)<<"Processing event "<<iEvent<<"\n";
 			  if(iEvent%10000 == 0) Log(0)<<"Processing event "<<iEvent<<"\n";
 			  if(iEvent >= config.params("maxEvents")) break;
-			  
+			  ResetBranchVariables();
 			  auto event = events->GetEvent(iEvent);
 			  
 			  // run this here just to save electron cut flow hist
 			  fillTauTauHistograms(*event, hists, dataset, suffixes);
+			  fillTauTauBranchVariables(*event, dataset);
+			  outTree->Fill();
 			}
 		}
 	}
@@ -322,6 +532,7 @@ int main(int argc, char* argv[])
     cout << "Writing Histograms" <<endl;
     outFile->cd();
     for(auto &[histName, hist] : hists) hist->Write();
+	outTree->Write();
   }
 
   outFile->Close();
