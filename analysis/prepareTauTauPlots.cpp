@@ -16,7 +16,9 @@ string outputPath = "results/basicPlots_test.root";
 bool saveCalosFailingNEE = true;
 bool saveTriphotonHists = true;
 bool checkTriggers = false;
-bool saveTree = true;
+bool saveTree = false;
+bool saveHists = false;
+bool saveCuts = true;
 int nThreePhotonEvents = 0;
 
 
@@ -26,7 +28,7 @@ const vector<EDataset> datasetsToAnalyze = {
 };
 
 vector<string> suffixes = {
-  "all"
+  ""
 };
 
 vector<tuple<string, int, double, double>> histParams = {
@@ -69,6 +71,8 @@ vector<tuple<string, int, double, double>> histParams = {
   {"track_vx"               ,300000,-15  , 15    },
   {"track_vy"               ,300000,-15  , 15    },
   {"track_vz"               ,300000,-50  , 50    },
+  {"Cuts"               ,10,0  , 10    },
+  {"Delta_Phi"               ,1000,0  , 4    },
   
   
 };
@@ -192,6 +196,157 @@ void InitializeBranches(TTree *Tree){
 	
 }
 
+void cutflow_hist(Event &event, const map<string, TH1D*> &hists,  EDataset dataset, string suffix="")
+{
+  string name = datasetName.at(dataset);
+  int cutThrough=0;
+  string lepton_type;
+  int lepton_index;
+  int matched_track_index = -1;
+  int unmatched_track_index = -1;
+  int nMuons = (int)event.GetPhysObjects(kMuon).size(); 
+  int nTracks = (int)event.GetPhysObjects(kGeneralTrack).size();
+  int nElectrons = (int)event.GetPhysObjects(kElectron).size();
+  float Max_Muon_Pt = 0.0;
+  float Max_Electron_Pt = 0.0;
+  int Max_Muon_index = -1;
+  int Max_Electron_index = -1;
+  int nUnmatchedTracks = 0;
+
+  for(int i = 0; i < nMuons; i++){
+	if(event.GetPhysObjects(kMuon)[i]->GetPt() > Max_Muon_Pt){
+	  Max_Muon_Pt = event.GetPhysObjects(kMuon)[i]->GetPt();
+	  Max_Muon_index = i;
+	}
+  }
+
+  
+  for(int i = 0; i < nElectrons; i++){
+	if(event.GetPhysObjects(kElectron)[i]->GetPt() > Max_Electron_Pt){
+	  Max_Electron_Pt = event.GetPhysObjects(kElectron)[i]->GetPt();
+	  Max_Electron_index = i;
+	}
+  }
+  
+  if(Max_Electron_Pt > Max_Muon_Pt){
+	lepton_index = Max_Electron_index;
+	lepton_type = "electron";
+  }
+  
+	
+  if(Max_Electron_Pt < Max_Muon_Pt){
+	lepton_index = Max_Muon_index;
+	lepton_type = "muon";
+  }
+
+  hists.at("Cuts_"+suffix+name)->Fill(cutThrough); // 0
+  if(lepton_type == "muon"){
+	auto lepton = event.GetPhysObjects(kMuon)[lepton_index];
+	for(int i = 0; i < nTracks; i++){
+	  auto track = event.GetPhysObjects(kGeneralTrack)[i];
+	  float diff_phi = fabs(lepton->GetPhi() - track->GetPhi());
+ 	  float diff_eta = fabs(lepton->GetEta() - track->GetEta());
+      if( diff_eta < .01 and diff_phi < .01){
+		matched_track_index = i;
+	  }
+      if(!( diff_eta < .01 and diff_phi < .01)){
+		unmatched_track_index = i;
+		nUnmatchedTracks ++;
+	  }
+	}
+	cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 1
+	if((unmatched_track_index != -1 and matched_track_index != -1
+	and nUnmatchedTracks == 1)){
+		
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 2
+    auto unmatch_track = event.GetPhysObjects(kGeneralTrack)[unmatched_track_index];
+    auto match_track = event.GetPhysObjects(kGeneralTrack)[matched_track_index];
+    if(!(lepton->GetPt() > 4.5 and fabs(lepton->GetEta())<2.5)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 3
+    if((unmatch_track->GetPt() > .5 and fabs(unmatch_track->GetEta())<2.5 
+	and match_track->GetPt() > .5 and fabs(match_track->GetEta())<2.5 )){
+		
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 4
+	float abs_delta_phi = fabs(lepton->GetPhi() - unmatch_track->GetPhi()); 
+	hists.at("Delta_Phi_"+suffix+name)->Fill(abs_delta_phi);
+	if((abs_delta_phi <3)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);   // 5
+    //Mass selection cut 
+    if((true)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);   // 6
+	if((lepton->GetPt() > 6)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);   // 7
+	}
+	}
+	}
+	}
+	}
+	}	
+  }
+ 
+	
+ 
+  if(lepton_type == "electron"){
+	auto lepton = event.GetPhysObjects(kElectron)[lepton_index];
+	for(int i = 0; i < nTracks; i++){
+	  auto track = event.GetPhysObjects(kGeneralTrack)[i];
+	  float diff_phi = fabs(lepton->GetPhi() - track->GetPhi());
+ 	  float diff_eta = fabs(lepton->GetEta() - track->GetEta());
+      if( diff_eta < .01 and diff_phi < .01){
+		matched_track_index = i;
+	  }
+      if(!( diff_eta < .01 and diff_phi < .01)){
+		unmatched_track_index = i;
+		nUnmatchedTracks ++;
+	  }
+	}
+	cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough); // 1
+	if((unmatched_track_index != -1 and matched_track_index != -1
+	and nUnmatchedTracks == 1)){
+		
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough); // 2
+    auto unmatch_track = event.GetPhysObjects(kGeneralTrack)[unmatched_track_index];
+    auto match_track = event.GetPhysObjects(kGeneralTrack)[matched_track_index];
+    if((lepton->GetPt() > 3 and fabs(lepton->GetEta())<2.4)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 3
+    if((unmatch_track->GetPt() > .5 and fabs(unmatch_track->GetEta())<2.5 
+	and match_track->GetPt() > .5 and fabs(match_track->GetEta())<2.5 )){
+		
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 4
+	float abs_delta_phi = fabs(lepton->GetPhi() - unmatch_track->GetPhi()); 
+	hists.at("Delta_Phi_"+suffix+name)->Fill(abs_delta_phi);
+	if((abs_delta_phi <3)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 5
+    //Mass selection cut 
+    if((true)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 6
+	if((lepton->GetPt() > 6)){
+    cutThrough++;
+    hists.at("Cuts_"+suffix+name)->Fill(cutThrough);  // 7
+	}
+	}
+	}
+	}
+	}
+	}  
+  }
+	
+  
+}
+
 bool endsWith(const std::string &mainStr, const std::string &toMatch)
 {
    if(mainStr.size() >= toMatch.size() &&
@@ -277,12 +432,14 @@ void fillTracksHists(Event &event, const map<string, TH1D*> &hists, EDataset dat
 void fillTauTauHistograms(Event &event, const map<string, TH1D*> &hists, EDataset dataset, vector<string> suffix_list)
 {
   string name = datasetName.at(dataset);
-  int cutThrough=0;
   
   double aco = physObjectProcessor.GetAcoplanarity(*event.GetPhysObjects(kMuon)[0],
                                                    *event.GetPhysObjects(kMuon)[1]);
   for(string suffix : suffix_list){
   if(suffix != "") suffix += "_";  
+	
+
+  
   hists.at("dilepton_acoplanarity_"+suffix+name)->Fill(aco);
   fillMuonHists(  event, hists, name, suffix);
   fillDimuonHists(event, hists, name, suffix);
@@ -478,12 +635,18 @@ int main(int argc, char* argv[])
 		  if(iEvent%1000 == 0)  Log(1)<<"Processing event "<<iEvent<<"\n";
 		  if(iEvent%10000 == 0) Log(0)<<"Processing event "<<iEvent<<"\n";
 		  if(iEvent >= config.params("maxEvents")) break;
-		  ResetBranchVariables();
 		  auto event = events->GetEvent(iEvent);
-		  
-		  fillTauTauHistograms(*event, hists, dataset, suffixes);
-		  fillTauTauBranchVariables(*event, dataset);
-		  outTree->Fill();
+		  if(saveHists){
+			fillTauTauHistograms(*event, hists, dataset, suffixes);
+		  }
+		  if(saveCuts){
+			cutflow_hist(*event, hists, dataset, "");
+		  }
+		  if(saveTree){
+			ResetBranchVariables();
+			fillTauTauBranchVariables(*event, dataset);
+			outTree->Fill();
+		  }
 		}
 	}
     if (endsWith(inputPath, "txt")){
@@ -497,12 +660,12 @@ int main(int argc, char* argv[])
 		if(sampleName == "CEP")     dataset = kMCcep;
 		ifstream file(inputPath);
 		string inputFile;
+		for(string suffix : suffixes){
+		  InitializeHistograms(hists, sampleName, suffix);
+		}
 		while(getline(file, inputFile)){
 			auto events = make_unique<EventProcessor>(inputFile, dataset);
 
-			for(string suffix : suffixes){
-			  InitializeHistograms(hists, sampleName, suffix);
-			}
 			
 
 			if(dataset == nDatasets){
@@ -514,13 +677,21 @@ int main(int argc, char* argv[])
 			  if(iEvent%1000 == 0)  Log(1)<<"Processing event "<<iEvent<<"\n";
 			  if(iEvent%10000 == 0) Log(0)<<"Processing event "<<iEvent<<"\n";
 			  if(iEvent >= config.params("maxEvents")) break;
-			  ResetBranchVariables();
+
 			  auto event = events->GetEvent(iEvent);
 			  
 			  // run this here just to save electron cut flow hist
-			  fillTauTauHistograms(*event, hists, dataset, suffixes);
-			  fillTauTauBranchVariables(*event, dataset);
-			  outTree->Fill();
+			  if(saveHists){
+			    fillTauTauHistograms(*event, hists, dataset, suffixes);
+			  }
+			  if(saveCuts){
+			    cutflow_hist(*event, hists, dataset, "");
+			  }
+			  if(saveTree){
+				ResetBranchVariables();
+				fillTauTauBranchVariables(*event, dataset);
+				outTree->Fill();
+			  }
 			}
 		}
 	}
@@ -532,7 +703,7 @@ int main(int argc, char* argv[])
     cout << "Writing Histograms" <<endl;
     outFile->cd();
     for(auto &[histName, hist] : hists) hist->Write();
-	outTree->Write();
+	if(saveTree) outTree->Write();
   }
 
   outFile->Close();
