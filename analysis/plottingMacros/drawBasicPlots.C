@@ -2,6 +2,9 @@
 
 string inputPath  = "../results/basicPlots_default.root";
 //string inputPath  = "../results/basicPlots_default_inverted.root";
+//string inputPath  = "../results/basicPlots_default_inverted_qed.root";
+//string inputPath  = "../results/basicPlots_default_full.root";
+//string inputPath  = "../results/basicPlots_default_HEMupdate.root";
 //string inputPath  = "../results/basicPlots_data_muchLooserCHE.root";
 //string inputPath  = "../results/basicPlots_data_noPixelTracks.root";
 //string inputPath  = "../results/basicPlots_data_ZDCcut.root";
@@ -15,16 +18,25 @@ string outputPath = "../plots/distributions";
 
 map<EDataset, double> initialNevents = {
 //  { kMCqedSC, 67820000  }, // total
-  { kMCqedSC, 960000    }, // currently available
+  { kMCqedSC, 980000    }, // currently available
   { kMClbl  , 362000    }, // currently available
   { kMCcep  , 144900    }, // currently available
 };
 
+double purity = 0.963988; // from fit
+//double purity = 0.957672; // from counting
+
+double cutEfficiencyQED = 0.7184;
+double cutEfficiencyLbL = 1.0;
+
+double dataAvailableFraction = 0.8514227642; // we are missing 15% of the data
+
 map<EDataset, double> crossSection = { // μb
-  { kMCqedSC, 8830    },
-  { kMClbl  , 2.59    },
+  { kMCqedSC, 8830    * cutEfficiencyQED * dataAvailableFraction * purity }, // scaling MC's to account for missing 15% of the data
+  { kMCqedSL, 7920    * dataAvailableFraction * purity }, // scaling MC's to account for missing 15% of the data
+  { kMClbl  , 2.59    * cutEfficiencyLbL * dataAvailableFraction },
 //  { kMCcep  , 5.8  },
-  { kMCcep  , 0.0058  },
+  { kMCcep  , 0.0058  * dataAvailableFraction * purity },
 };
 
 //double luminosity = 1847.99; // from CMS pages, 1/μb
@@ -149,12 +161,12 @@ vector<tuple<string, string, bool, ENorm, int, int, int, double, double>> histPa
   
   { "lbl_n_pixel_tracks_all"          , "LbL N_{tracks}^{pixel}"  , false, kEntries ,   11   , 1  , 1 ,   0  , 20  },
   { "lbl_n_zdc_all"                   , "LbL N_{ZDC}"             , false, kEntries ,   11   , 2  , 1 ,   0  , 20  },
-  { "lbl_zdc_energy_all"              , "LbL E_{ZDC} (A.U.)"      , true , kEntries ,   11   , 3  , 1 ,   0  ,50000},
-  { "lbl_zdc_sum_energy_all"          , "LbL #sum E_{ZDC} (A.U.)" , true , kEntries ,   11   , 4  , 50,   0 ,100000},
-  { "lbl_zdc_sum_energy_pos_all"      , "LbL #sum E_{ZDC}^{+} (A.U.)",true,kEntries ,   11   , 5  , 50,   0 ,100000},
-  { "lbl_zdc_sum_energy_neg_all"      , "LbL #sum E_{ZDC}^{-} (A.U.)",true,kEntries ,   11   , 6  , 50,   0 ,100000},
-  { "zdc_sum_energy_pos_all"          , "#sum E_{ZDC}^{+} (A.U.)" , true , kEntries ,   11   , 7  , 1 ,   0 ,100000},
-  { "zdc_sum_energy_neg_all"          , "#sum E_{ZDC}^{-} (A.U.)" , true , kEntries ,   11   , 8  , 1 ,   0 ,100000},
+  { "lbl_zdc_energy_all"              , "LbL E_{ZDC} (TeV)"       , true , kEntries ,   11   , 3  , 1 ,   0  ,50000},
+  { "lbl_zdc_sum_energy_all"          , "LbL #sum E_{ZDC} (TeV)"  , true , kEntries ,   11   , 4  , 50,   0 ,100000},
+  { "lbl_zdc_sum_energy_pos_all"      , "LbL #sum E_{ZDC}^{+} (TeV)",true, kEntries ,   11   , 5  , 50,   0 ,100000},
+  { "lbl_zdc_sum_energy_neg_all"      , "LbL #sum E_{ZDC}^{-} (TeV)",true, kEntries ,   11   , 6  , 50,   0 ,100000},
+  { "zdc_sum_energy_pos_all"          , "#sum E_{ZDC}^{+} (TeV)"  , true , kEntries ,   11   , 7  , 1 ,   0 ,100000},
+  { "zdc_sum_energy_neg_all"          , "#sum E_{ZDC}^{-} (TeV)"  , true , kEntries ,   11   , 8  , 1 ,   0 ,100000},
   
   
   // Here nice plots for AN. Don't apply scaling again: kNoScaling
@@ -189,20 +201,26 @@ void fillLabels(TH1D *hist, vector<const char*> labels)
   hist->LabelsOption("u", "X");
 }
 
-vector<const char *> labelsLbL = {
-  "Initial", "Trigger", "CHE", "CHE_{pix}", "N_{hits}^{pixel}", "ZDC", "NEE", "2 good photons",
-  "diphoton m_{inv}", "diphoton p_{t}", "diphoton y", "acoplanarity"
-};
-
-// inverted cuts order:
 //vector<const char *> labelsLbL = {
-//  "Initial", "Trigger", "2 good photons",
-//  "diphoton m_{inv}", "CHE", "CHE_{pix}", "N_{hits}^{pixel}", "ZDC", "NEE", "diphoton p_{t}", "diphoton y", "acoplanarity"
+//  "Initial", "Trigger", "CHE", "CHE_{pix}", "N_{hits}^{pixel}", "ZDC", "NEE", "2 good photons",
+//  "diphoton m_{inv}", "diphoton p_{t}", "diphoton y", "acoplanarity"
 //};
 
+// inverted cuts order:
+vector<const char *> labelsLbL = {
+  "Initial", "Trigger", "2 good photons",
+  "diphoton m_{inv}", "CHE", "CHE_{pix}", "N_{hits}^{pixel}", "ZDC", "NEE", "diphoton p_{t}", "diphoton y", "acoplanarity"
+};
+
+//vector<const char *> labelsQED = {
+//  "Initial", "Trigger", "NEE", "CHE", "2 good electrons", "opposite q",
+//  "dielectron m_{inv}", "dielectron p_{t}", "dielectron y"
+//};
+
+// inverted cuts order:
 vector<const char *> labelsQED = {
-  "Initial", "Trigger", "NEE", "CHE", "2 good electrons", "opposite q",
-  "dielectron m_{inv}", "dielectron p_{t}", "dielectron y"
+  "Initial", "Trigger", "2 good electrons", "opposite q",
+  "dielectron m_{inv}", "CHE", "ZDC", "NEE", "dielectron p_{t}", "dielectron y"
 };
 
 void setCutflowLabels(TH1D *hist, bool lbl)
@@ -359,11 +377,11 @@ void normalizeHists(map<EDataset, TH1D*> hists, ENorm normStrategy)
     else if(normStrategy == kXsec){
       if(dataset == kData) continue;
       hists[dataset]->Scale(luminosity*crossSection[dataset]/initialNevents[dataset]);
-      hists[dataset]->Sumw2(false);
+//      hists[dataset]->Sumw2(false);
     }
     else if(normStrategy == kNoScaling){
       if(dataset == kData) continue;
-      hists[dataset]->Sumw2(false);
+//      hists[dataset]->Sumw2(false);
     }
   }
 }
@@ -443,6 +461,7 @@ void drawBasicPlots()
     }
     
     if(histName == "lbl_cut_flow_all"){
+      cout<<"\n\n LbL yields:"<<endl;
       for(EDataset dataset : datasetsToAnalyze){
         if(!hists[dataset]) continue;
         
@@ -455,6 +474,23 @@ void drawBasicPlots()
         }
       }
     }
+    
+    
+    if(histName == "qed_cut_flow_all"){
+      cout<<"\n\n QED yields:"<<endl;
+      for(EDataset dataset : datasetsToAnalyze){
+        if(!hists[dataset]) continue;
+        
+        cout<<"\n----------------------------"<<endl;
+        cout<<"Dataset: "<<datasetName.at(dataset)<<endl;
+        
+        for(int i=0; i<labelsQED.size(); i++){
+          cout<<labelsQED[i]<<": "<<to_string_with_precision(hists[dataset]->GetBinContent(i+1), 2);
+          cout<<"\t+/- "<<to_string_with_precision(hists[dataset]->GetBinError(i+1), 2)<<endl;
+        }
+      }
+    }
+    
     
     dataHist->SetTitle("");
     
