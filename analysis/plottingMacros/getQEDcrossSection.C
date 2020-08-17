@@ -2,48 +2,70 @@
 
 //string inputPath  = "../results/basicPlots_default_HEMupdate.root";
 string inputPath  = "../results/basicPlots_default.root";
+//string inputPath  = "../results/basicPlots_noZDCcuts.root";
 
 // efficiency for exclusivity, with stat and syst errors.
-const double neutralExclusivityEfficiency        = 0.71; // 0.895;
-const double neutralExclusivityEfficiencyErrStat = 0.03; // 0.013;
+const double neutralExclusivityEfficiency        = 0.70; // 0.895;
+const double neutralExclusivityEfficiencyErrStat = 0.02; // 0.013;
 const double neutralExclusivityEfficiencyErrSyst = 0.0;
 const double neutralExclusivityEfficiencyErr     = sqrt(pow(neutralExclusivityEfficiencyErrStat, 2) +
                                                         pow(neutralExclusivityEfficiencyErrSyst, 2));
 
-const double chargedExclusivityEfficiency        = 0.88;
-const double chargedExclusivityEfficiencyErrStat = 0.04;
+const double chargedExclusivityEfficiency        = 0.89;
+const double chargedExclusivityEfficiencyErrStat = 0.02;
 const double chargedExclusivityEfficiencyErrSyst = 0.0;
 const double chargedExclusivityEfficiencyErr     = sqrt(pow(chargedExclusivityEfficiencyErrStat, 2) +
                                                         pow(chargedExclusivityEfficiencyErrSyst, 2));
 
-const double generatorCutsEfficiency  = 0.7184;
-const double dataAvailableFraction    = 0.8514227642; // we are missing 15% of the data
+//const double generatorCutsEfficiency  = 0.7184;
+const double generatorCutsEfficiency  = 1.0;
+const double dataAvailableFraction    = 1.0; // we are missing 15% of the data
 
 // From SuperChic
-const double xsecGenerated    = dataAvailableFraction * generatorCutsEfficiency * 8827.220; // μb
+//const double xsecGenerated    = dataAvailableFraction * generatorCutsEfficiency * 8827.220; // μb
+
+// From Starlight
+const double xsecGenerated    = dataAvailableFraction * generatorCutsEfficiency * 7920; // μb
+
+
 const double xsecGeneratedErr = 79.73715; // μb
 
 // TODO: replace luminosity by the one calculated for our ntuples
 
-const double luminosity       = 1642.797392287; // μb^-1
+//const double luminosity       = 1642.797392287; // μb^-1
 // luminosity from brilcalc obtained with this command:
 // brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json  -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/HI/PromptReco/Cert_326381-327564_HI_PromptReco_Collisions18_JSON.txt --hltpath HLT_HIUPC_DoubleEG2_NotMBHF2AND_v1
+
+
+const double luminosity       = 1635.123139823; // μb^-1
+// luminosity in our ntuples:
+// brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json  -i /afs/cern.ch/work/j/jniedzie/private/lbl_ntuplizer/CMSSW_10_3_4/src/HeavyIonsAnalysis/PhotonAnalysis/test/crab_projects/crab_ntuples_data_lbl/results/processedLumis.json --hltpath HLT_HIUPC_DoubleEG2_NotMBHF2AND_v1
+
+// 1247.958558851
+
+// +
+
+// brilcalc lumi --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json  -i /afs/cern.ch/work/j/jniedzie/private/lbl_ntuplizer/CMSSW_10_3_4/src/HeavyIonsAnalysis/PhotonAnalysis/test/crab_projects/crab_ntuples_data_lbl/results/processedLumis.json --hltpath HLT_HIUPC_DoubleEG2_NotMBHF2AND_v1
+
+// 387.164580972
+
+// = 1635.123139823
 
 const double luminosityErr    = 0.015 * luminosity;
 // Relative uncertainty on luminosity as recommended by: http://cms.cern.ch/iCMS/analysisadmin/cadilines?line=LUM-18-001
 
-const double scaleFactor          = pow(0.71, 2); // This is Reco+ID only.
-const double scaleFactorErrStat   = 0.03;
+const double scaleFactor          = pow(0.74, 2); // This is Reco+ID only.
+const double scaleFactorErrStat   = 0.02;
 const double scaleFactorErr       = 2 * scaleFactorErrStat;
 
 // const double scaleFactorErr       = sqrt(pow(scale, 2) + pow( 2 * 0.02, 2)); // TODO: why second term is multiplied by 2?
 
-const double nEventsGenerated     = 980000; // TODO: update number of events when full stat available
+const double nEventsGenerated = 66750000; // TODO: update number of events when full stat available
 
 const double acoplanarityCut = 0.06;
 const double maxAcolpanarity = 0.01; // TODO: what's the difference between those two numbers?
 
-const double globalSystErr = 2 * scaleFactorErrSyst/sqrt(scaleFactor); // relative uncertainty on Reco+ID scale factor
+const double globalSystErr = 2 * scaleFactorErr/sqrt(scaleFactor); // relative uncertainty on Reco+ID scale factor
 
 void getQEDcrossSection()
 {
@@ -60,7 +82,7 @@ void getQEDcrossSection()
     exit(0);
   }
   
-  TH1D *acoplanarityHistMC = (TH1D*)inFile->Get("qed_acoplanarity_all_QED_SC");
+  TH1D *acoplanarityHistMC = (TH1D*)inFile->Get("qed_acoplanarity_all_QED_SL");
   if(!acoplanarityHistMC){
     cout<<"ERROR -- could not find MC acoplanarity histogram in the input file!"<<endl;
     exit(0);
@@ -114,7 +136,7 @@ void getQEDcrossSection()
   
   double normalizationMCerr, normalizationDataErr;
   
-  double normalizationMC  = acoplanarityHistMC->IntegralAndError(1, maxBin, normalizationMCerr, "width");
+  double normalizationMC   = acoplanarityHistMC->IntegralAndError(1, maxBin, normalizationMCerr, "width");
   double normalizationData = acoplanarityHistData->IntegralAndError(1, maxBin, normalizationDataErr,"width");
   
   cout << "Scaling MC by " << normalizationMC << " / " << normalizationData << " = " << normalizationMC/normalizationData << endl;
@@ -184,6 +206,11 @@ void getQEDcrossSection()
   
   // TODO: why do we calculate it this way?
   double xsec = normalizationData * purityCounting * (nEventsGenerated/(normalizationMC*scaleFactor))/luminosity;
+  
+  cout<<"Raw x-sec: "<<normalizationData/luminosity<<endl;
+  cout<<"x-sec with purity: "<<normalizationData/luminosity * purityCounting<<endl;
+  cout<<"x-sec with purity and efficiency: "<<normalizationData/luminosity * purityCounting * (nEventsGenerated/(normalizationMC))<<endl;
+  cout<<"x-sec with purity, efficiency and SF: "<<normalizationData/luminosity * purityCounting * (nEventsGenerated/(normalizationMC*scaleFactor))<<endl;
   
   
   double xsecErrStat                = xsec * (normalizationDataErr/normalizationData);

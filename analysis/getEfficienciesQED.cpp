@@ -33,6 +33,21 @@ vector<string> histParams = {
   "delta_pt_tracks",
   "delta_phi_electron_photon",
   
+  // electron reco+ID efficiency
+  "electron_reco_id_eff_cut_through",
+  "electron_reco_id_eff_num",
+  "electron_reco_id_eff_den",
+  "electron_reco_id_eff_acoplanarity_num",
+  "electron_reco_id_eff_acoplanarity_den",
+  
+  "electron_reco_id_eff_vs_pt_num",
+  "electron_reco_id_eff_vs_pt_den",
+  "electron_reco_id_eff_vs_eta_num",
+  "electron_reco_id_eff_vs_eta_den",
+ 
+  "failed_electron_reco_id_eff_vs_pt",
+  "failed_electron_reco_id_eff_vs_eta",
+  
   // trigger efficiency histograms
   "trigger_eff_cut_through",
   "trigger_HFveto_eff_cut_through",
@@ -80,12 +95,12 @@ void CheckRecoEfficiency(Event &event, map<string, TH1D*> &hists, string dataset
   hists[cutThouthName]->Fill(cutLevel++); // 1
   
   // Preselect events with exactly two tracks
-  if(event.GetPhysObjects(kGeneralTrack).size() != 2) return;
+  if(event.GetPhysObjects(EPhysObjType::kGeneralTrack).size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 2
   
   // Make sure that tracks have opposite charges and that brem track has low momentum
-  auto track1 = event.GetPhysObjects(kGeneralTrack)[0];
-  auto track2 = event.GetPhysObjects(kGeneralTrack)[1];
+  auto track1 = event.GetPhysObjects(EPhysObjType::kGeneralTrack)[0];
+  auto track2 = event.GetPhysObjects(EPhysObjType::kGeneralTrack)[1];
   if(track1->GetCharge() == track2->GetCharge()) return;
   hists[cutThouthName]->Fill(cutLevel++); // 3
   
@@ -95,12 +110,12 @@ void CheckRecoEfficiency(Event &event, map<string, TH1D*> &hists, string dataset
   
   // Check if there is one good electron matched with L1EG
   PhysObjects goodMatchedElectrons;
-  auto goodElectrons = event.GetPhysObjects(kGoodElectron);
+  auto goodElectrons = event.GetPhysObjects(EPhysObjType::kGoodElectron);
   
   for(auto electron : goodElectrons){
     if(electron->GetPt() < 3.0) continue;
     
-    for(auto &L1EG : event.GetPhysObjects(kL1EG)){
+    for(auto &L1EG : event.GetPhysObjects(EPhysObjType::kL1EG)){
       if(L1EG->GetEt() < 3.0) continue;
       
       if(physObjectProcessor.GetDeltaR_SC(*electron, *L1EG) < 0.3){
@@ -118,7 +133,7 @@ void CheckRecoEfficiency(Event &event, map<string, TH1D*> &hists, string dataset
   PhysObjects matchingTracks;
   PhysObjects bremTracks;
   
-  for(auto track : event.GetPhysObjects(kGeneralTrack)){
+  for(auto track : event.GetPhysObjects(EPhysObjType::kGeneralTrack)){
     if(physObjectProcessor.GetDeltaR(*theElectron, *track) < 0.3) matchingTracks.push_back(track);
     else                                                          bremTracks.push_back(track);
   }
@@ -146,8 +161,8 @@ void CheckRecoEfficiency(Event &event, map<string, TH1D*> &hists, string dataset
   hists["delta_pt_tracks_"+datasetName]->Fill(fabs(bremTrack->GetPt() - matchingTrack->GetPt()));
   
 //   Count number of photons that are far from good, matched electrons
-  auto photons = event.GetPhysObjects(kGoodPhoton);
-//  auto photons = event.GetPhysObjects(kPhoton);
+  auto photons = event.GetPhysObjects(EPhysObjType::kGoodPhoton);
+//  auto photons = event.GetPhysObjects(EPhysObjType::kPhoton);
   int nBremPhotons = 0;
   
   for(auto photon : photons){
@@ -167,7 +182,7 @@ void CheckRecoEfficiency(Event &event, map<string, TH1D*> &hists, string dataset
     hists["reco_id_eff_vs_eta_num_"+datasetName]->Fill(fabs(matchingTracks[0]->GetEta()));
   }
   else{
-    auto allPhotons = event.GetPhysObjects(kPhoton);
+    auto allPhotons = event.GetPhysObjects(EPhysObjType::kPhoton);
 //    saveEventDisplay(matchingTracks, bremTracks, goodMatchedElectrons, photons, allPhotons, "~/Desktop/lbl_event_displays_"+datasetName+"/");
     
     for(auto photon : allPhotons){
@@ -189,6 +204,96 @@ void CheckRecoEfficiency(Event &event, map<string, TH1D*> &hists, string dataset
       }
     }
   }
+}
+
+/// Counts number of events passing tag and probe criteria for reco+ID efficiency
+void CheckElectronRecoEfficiency(Event &event, map<string, TH1D*> &hists, string datasetName)
+{
+  string cutThouthName = "electron_reco_id_eff_cut_through_"+datasetName;
+  int cutLevel = 0;
+  hists[cutThouthName]->Fill(cutLevel++); // 0
+  
+  // Check trigger
+  if(!event.HasTrigger(kSingleEG3noHF)) return;
+  hists[cutThouthName]->Fill(cutLevel++); // 1
+  
+  // Preselect events with one or two electrons
+  PhysObjects goodMatchedElectrons  = event.GetPhysObjects(EPhysObjType::kGoodMatchedElectron);
+  PhysObjects goodElectrons         = event.GetPhysObjects(EPhysObjType::kGoodElectron);
+  
+  if(goodElectrons.size() != 1 && goodElectrons.size() != 2) return;
+  hists[cutThouthName]->Fill(cutLevel++); // 2
+  
+  if(goodMatchedElectrons.size() != 1 && goodMatchedElectrons.size() != 2) return;
+  hists[cutThouthName]->Fill(cutLevel++); // 3
+  
+  
+  auto electronTag = goodMatchedElectrons[0];
+  shared_ptr<PhysObject> trackTag = nullptr;
+  PhysObjects goodGeneralTracks = event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack);
+  PhysObjects probeTracks;
+  
+  // Find track matched to the tag and put other tracks in a separate collection
+  for(auto track : goodGeneralTracks){
+    if(track->GetPt() < 2.0) continue;
+    bool matched = physObjectProcessor.GetDeltaR(*electronTag, *track) < config.params("maxDeltaR");
+    if(matched) trackTag = track;
+    else        probeTracks.push_back(track);
+  }
+  
+  // make sure that tag electon is matched with a track > 2 GeV
+  if(!trackTag) return;
+  hists[cutThouthName]->Fill(cutLevel++); // 4
+
+  // Check that there are some tracks left
+  if(probeTracks.size() != 1) return;
+  hists[cutThouthName]->Fill(cutLevel++); // 5
+
+  auto dielectron = physObjectProcessor.GetDielectron(*trackTag, *probeTracks[0]);
+  
+  if(dielectron.Pt() > 2.0 || dielectron.M() < 4.0) return;
+  hists[cutThouthName]->Fill(cutLevel++); // 6
+  
+  hists["electron_reco_id_eff_den_"+datasetName]->Fill(1);
+  hists["electron_reco_id_eff_vs_pt_den_"+datasetName]->Fill(electronTag->GetPt());
+  hists["electron_reco_id_eff_vs_eta_den_"+datasetName]->Fill(electronTag->GetEta());
+  
+  // Check that there is a second electron
+  
+  if(goodElectrons.size() != 2){
+    hists["failed_electron_reco_id_eff_vs_pt_"+datasetName]->Fill(electronTag->GetPt());
+    hists["failed_electron_reco_id_eff_vs_eta_"+datasetName]->Fill(electronTag->GetEta());
+    return;
+  }
+  
+  
+  shared_ptr<PhysObject> electronProbe;
+  
+  for(auto electron : goodElectrons){
+    if(electron != electronTag) electronProbe = electron;
+  }
+  
+  bool probeMatched = false;
+  
+  for(auto track : probeTracks){
+    bool matched = physObjectProcessor.GetDeltaR(*electronProbe, *track) < config.params("maxDeltaR");
+    if(matched){
+      probeMatched = true;
+      break;
+    }
+  }
+  
+  if(!probeMatched){
+    hists["failed_electron_reco_id_eff_vs_pt_"+datasetName]->Fill(electronTag->GetPt());
+    hists["failed_electron_reco_id_eff_vs_eta_"+datasetName]->Fill(electronTag->GetEta());
+    return;
+  }
+  hists[cutThouthName]->Fill(cutLevel++); // 8
+  
+  
+  hists["electron_reco_id_eff_num_"+datasetName]->Fill(1);
+  hists["electron_reco_id_eff_vs_pt_num_"+datasetName]->Fill(electronTag->GetPt());
+  hists["electron_reco_id_eff_vs_eta_num_"+datasetName]->Fill(electronTag->GetEta());
 }
 
 /// Counts number of events passing tag and probe criteria for trigger efficiency
@@ -231,12 +336,12 @@ void CheckTriggerEfficiency(Event &event, map<string, TTree*> &trees, map<string
   hists[cutThouthName]->Fill(cutLevel++); // 2
   
   // Preselect events with exactly two electrons
-  auto goodElectrons = event.GetPhysObjects(kGoodElectron);
+  auto goodElectrons = event.GetPhysObjects(EPhysObjType::kGoodElectron);
   if(goodElectrons.size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 3
   
   // Charged exclusivity
-  if(event.GetPhysObjects(kGoodGeneralTrack).size() != 2) return;
+  if(event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack).size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 4
   
   // Tag and probe
@@ -247,7 +352,7 @@ void CheckTriggerEfficiency(Event &event, map<string, TTree*> &trees, map<string
   shared_ptr<PhysObject> passingProbe = nullptr;
   shared_ptr<PhysObject> failedProbe = nullptr;
   
-  for(auto &L1EG : event.GetPhysObjects(kL1EG)){
+  for(auto &L1EG : event.GetPhysObjects(EPhysObjType::kL1EG)){
     if(tag && passingProbe) break;
     
     double deltaR1 = physObjectProcessor.GetDeltaR_SC(*electron1, *L1EG);
@@ -300,7 +405,7 @@ void CheckTriggerHFvetoEfficiency(Event &event, map<string, TH1D*> &hists, strin
   hists[cutThouthName]->Fill(cutLevel++); // 2
   
   // Preselect events with exactly two electrons
-  auto goodElectrons = event.GetPhysObjects(kGoodElectron);
+  auto goodElectrons = event.GetPhysObjects(EPhysObjType::kGoodElectron);
   if(goodElectrons.size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 3
   
@@ -311,14 +416,14 @@ void CheckTriggerHFvetoEfficiency(Event &event, map<string, TH1D*> &hists, strin
   hists[cutThouthName]->Fill(cutLevel++); // 4
   
   // Charged exclusivity
-  if(event.GetPhysObjects(kGoodGeneralTrack).size() != 2) return;
+  if(event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack).size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 5
   
   // Check if there are two electrons matched with L1 objects
   PhysObjects matchedElectrons;
   
   // Check matching with L1 objects
-  for(auto &L1EG : event.GetPhysObjects(kL1EG)){
+  for(auto &L1EG : event.GetPhysObjects(EPhysObjType::kL1EG)){
     if(matchedElectrons.size() == 2) break;
     if(L1EG->GetEt() < 2.0) continue;
     
@@ -350,7 +455,7 @@ void CheckCHEefficiency(Event &event, map<string, TH1D*> &hists, string datasetN
   hists[cutThouthName]->Fill(cutLevel++); // 1
   
   // Check that there are exaclty two electrons
-  auto goodElectrons = event.GetPhysObjects(kGoodElectron);
+  auto goodElectrons = event.GetPhysObjects(EPhysObjType::kGoodElectron);
   if(goodElectrons.size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 2
   
@@ -380,7 +485,7 @@ void CheckCHEefficiency(Event &event, map<string, TH1D*> &hists, string datasetN
   hists["charged_exclusivity_eff_vs_dielectron_pt_den_"+datasetName]->Fill(dielectron.Pt());
   
   // Charged exclusivity
-  if(event.GetPhysObjects(kGoodGeneralTrack).size() != 2) return;
+  if(event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack).size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 5
   hists["charged_exclusivity_eff_num_"+datasetName]->Fill(1);
   hists["charged_exclusivity_eff_vs_dielectron_mass_num_"+datasetName]->Fill(dielectron.M());
@@ -399,7 +504,7 @@ void CheckNEEefficiency(Event &event, map<string, TH1D*> &hists, string datasetN
   hists[cutThouthName]->Fill(cutLevel++); // 1
   
   // Check that there are exaclty two electrons
-  auto goodElectrons = event.GetPhysObjects(kGoodElectron);
+  auto goodElectrons = event.GetPhysObjects(EPhysObjType::kGoodElectron);
   if(goodElectrons.size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 2
   
@@ -416,7 +521,7 @@ void CheckNEEefficiency(Event &event, map<string, TH1D*> &hists, string datasetN
   hists[cutThouthName]->Fill(cutLevel++); // 4
   
   // Charged exclusivity
-  if(event.GetPhysObjects(kGoodGeneralTrack).size() != 2) return;
+  if(event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack).size() != 2) return;
   hists[cutThouthName]->Fill(cutLevel++); // 5
   hists["neutral_exclusivity_eff_den_"+datasetName]->Fill(1);
   hists["neutral_exclusivity_eff_vs_dielectron_mass_den_"+datasetName]->Fill(dielectron.M());
@@ -524,6 +629,7 @@ void PrintAndSaveResults(TFile *outFile, map<string, TH1D*> &hists,
     if(!config.params("doTriggerEfficiency") && histName.find("trigger") != string::npos)                  continue;
     if(!config.params("doCHEefficiency")     && histName.find("charged_exclusivity_eff") != string::npos)  continue;
     if(!config.params("doNEEefficiency")     && histName.find("neutral_exclusivity_eff") != string::npos)  continue;
+    if(!config.params("doElectronRecoEfficiency") && histName.find("electron_reco_id_eff") != string::npos)              continue;
     
     string title = histName + "_" + datasetType;
     hists[title]->Write();
@@ -553,6 +659,12 @@ void PrintAndSaveResults(TFile *outFile, map<string, TH1D*> &hists,
     nTag    = hists["neutral_exclusivity_eff_den_"+datasetType]->GetBinContent(1);
     nProbe  = hists["neutral_exclusivity_eff_num_"+datasetType]->GetBinContent(1);
     Log(0)<<"Neutral N tags, probes "<<datasetType<<": "<<nTag<<", "<<nProbe<<"\n";
+    Log(0)<<" efficiency: "; PrintEfficiency(nProbe, nTag);
+  }
+  if(config.params("doElectronRecoEfficiency")){
+    nTag    = hists["electron_reco_id_eff_den_"+datasetType]->GetBinContent(1);
+    nProbe  = hists["electron_reco_id_eff_num_"+datasetType]->GetBinContent(1);
+    Log(0)<<"Electron reco N tags, probes "<<datasetType<<": "<<nTag<<", "<<nProbe<<"\n";
     Log(0)<<" efficiency: "; PrintEfficiency(nProbe, nTag);
   }
   
@@ -606,11 +718,12 @@ int main(int argc, char* argv[])
     
     auto event = events->GetEvent(iEvent);
     
-    if(config.params("doRecoEfficiency"))    CheckRecoEfficiency(*event, hists, sampleName);
-    if(config.params("doTriggerEfficiency")) CheckTriggerEfficiency(*event, triggerTrees, hists, sampleName);
-    if(config.params("doHFvetoEfficiency"))  CheckTriggerHFvetoEfficiency(*event, hists, sampleName);
-    if(config.params("doCHEefficiency"))     CheckCHEefficiency(*event, hists, sampleName);
-    if(config.params("doNEEefficiency"))     CheckNEEefficiency(*event, hists, sampleName);
+    if(config.params("doRecoEfficiency"))         CheckRecoEfficiency(*event, hists, sampleName);
+    if(config.params("doTriggerEfficiency"))      CheckTriggerEfficiency(*event, triggerTrees, hists, sampleName);
+    if(config.params("doHFvetoEfficiency"))       CheckTriggerHFvetoEfficiency(*event, hists, sampleName);
+    if(config.params("doCHEefficiency"))          CheckCHEefficiency(*event, hists, sampleName);
+    if(config.params("doNEEefficiency"))          CheckNEEefficiency(*event, hists, sampleName);
+    if(config.params("doElectronRecoEfficiency")) CheckElectronRecoEfficiency(*event, hists, sampleName);
   }
   
   PrintAndSaveResults(outFile, hists, triggerTrees, sampleName);

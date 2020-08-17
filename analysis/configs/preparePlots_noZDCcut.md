@@ -3,14 +3,6 @@
 ### Verbosity level (0: critical errors only, 1: errors and warnings, 2: full debug log):
 verbosityLevel: 0
 
-### Select which efficiencies should be calculated:
-doRecoEfficiency:       1
-doTriggerEfficiency:    1
-doHFvetoEfficiency:   1
-doCHEefficiency:        1
-doNEEefficiency:        1
-doElectronRecoEfficiency: 1
-
 ### Max number of events to analyze
 maxEvents: 9999999
 
@@ -44,28 +36,28 @@ pixelTrackMinNvalidHits:         3
 pixelTrackMaxChi2:                 999999
 
 ### ZDC cuts
-maxZDCenergy:                       999999
-maxTotalZDCenergy:                999999
-maxTotalZDCenergyPerSide:    10000
+maxZDCenergy:                       9999999
+maxTotalZDCenergy:                9999999
+maxTotalZDCenergyPerSide:    99999999
 
 ### Max ΔR for matching for reco+ID efficiency
 maxDeltaR:              0.3
 
 ### Photon ID cuts:
-photonMinEt:                            2.0
-photonMaxEta:                         2.4
-photonMaxHoverEbarrel:          0.04596
-photonMaxHoverEendcap:       0.0590
-photonMaxEtaWidthBarrel:       0.0106
-photonMaxEtaWidthEndcap:    0.0272
+photonMinEt:                                    2.0
+photonMaxEta:                                 2.4
+photonMaxHoverEbarrel:                  0.04596
+photonMaxHoverEendcap:              0.0590
+photonMaxEtaWidthBarrel:              0.0106
+photonMaxEtaWidthEndcap:           0.0272
 photonMaxSigmaEta2012Barrel:     999999
 photonMaxSigmaEta2012Endcap:  999999
-photonMinSwissCross:             0.0
-diphotonMaxPt:                        1.0
-diphotonMaxRapidity:               9999999
-diphotonMinMass:                    5.0
-diphotonMaxAco:                      0.01
-photonRejectConverted:           1
+photonMinSwissCross:                    0.005
+diphotonMaxPt:                                1.0
+diphotonMaxRapidity:                      9999999
+diphotonMinMass:                            5.0
+diphotonMaxAco:                             0.01
+photonRejectConverted:                  1
 
 ### Electron ID cuts:
 electronMinPt:                            2.0
@@ -93,10 +85,10 @@ ecalCrackMax: 1.566
 ecalHEMmaxEta:  -1.39
 ecalHEMminPhi:  -1.6
 ecalHEMmaxPhi: -0.9
-
+ 
 ### Don't look at towers that are in very noisy region of EE
 maxEtaEEtower:      2.4
-
+ 
 ### Calorimeter noise thresolds (GeV)
 noiseThresholdEB:        0.7
 noiseThresholdEE:        7.5
