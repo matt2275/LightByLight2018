@@ -152,8 +152,6 @@ bool IsGoodForExclusivity_TauTau(Event &event)
   // Check trigger
   if(!(event.HasTrigger(kSingleMuOpenNoHF) or event.HasTrigger(kSingleEG5noHF))) return false;
   if(event.HasAdditionalTowers()) return false;
-  if(!(event.GetPhysObjects(kMuon)[0]->GetPt() > 1.0)) return false;
-  if(!(fabs(event.GetPhysObjects(kMuon)[0]->GetEta()) < 2.4)) return false;
   return true;  
 }
 
