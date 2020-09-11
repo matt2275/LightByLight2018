@@ -1,5 +1,4 @@
 /afs/cern.ch/user/m/mnickel/private/LightByLight2018/analysis/configs/efficiencies.md
-/eos/cms/store/group/phys_heavyions/rchudasa/lbyl_2018/data_ntuples/HIForward/ntuples_data_new/200105_192027/0000/data_HiForestAOD_1-943.root
-/eos/user/m/mnickel/TauTau/testdata/data_sig_mu_1-943-2.root
-/eos/user/m/mnickel/TauTau/testdata/data_mu_ele_1-943-2.root
-/eos/user/m/mnickel/TauTau/testdata/data_mu_mu_1-943-2.root
+/eos/cms/store/group/phys_diffraction/lbyl_2018/HIForward_Reco/ntuples/ntuples_data/HIForward/ntuples_data_lbl/200617_140125/0000/data_HiForwardAOD_1-1.root
+/eos/user/m/mnickel/TauTau/testdata/data_TauTau_Ex_1-943-2.root
+/eos/user/m/mnickel/TauTau/testdata/data_TauTau_Ex_tracks_1-943-2.root
