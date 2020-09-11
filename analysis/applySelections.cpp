@@ -146,43 +146,26 @@ bool IsPassingAllLbLCuts(Event &event, bool doHighAco)
 }
 
 
-/// checks if event has single muon SET TO RETURN FALSE
-bool IsGoodForSingleMuon(Event &event)
+/// checks 
+bool IsGoodForExclusivity_TauTau(Event &event)
 {
   // Check trigger
-  if(!(event.HasTrigger(kSingleMuOpenNoHF) or event.HasTrigger(kSingleMu0NoHF))) return false;
-  if(!(event.GetPhysObjects(kMuon).size() >= 1)) return false;
+  if(!(event.HasTrigger(kSingleMuOpenNoHF) or event.HasTrigger(kSingleEG5noHF))) return false;
+  if(event.HasAdditionalTowers()) return false;
   if(!(event.GetPhysObjects(kMuon)[0]->GetPt() > 1.0)) return false;
   if(!(fabs(event.GetPhysObjects(kMuon)[0]->GetEta()) < 2.4)) return false;
   return true;  
 }
 
 /// checks if event has muon and electron (opposite sign)
-bool IsGoodForMuEle(Event &event)
+bool IsGoodForExclusivity_TauTau_tracks(Event &event)
 {
   // Check trigger
-  if(!event.HasTrigger(kSingleMuOpenNoHF)) return false;
-  // Check Electrons
-  if(event.GetPhysObjects(EPhysObjType::kElectron).size() != 1) return false;
-  if(event.GetPhysObjects(EPhysObjType::kMuon).size() != 1) return false;
-  if(event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack).size() != 2) return false;
-  if(event.GetPhysObjects(EPhysObjType::kMuon)[0]->GetCharge() ==
-     event.GetPhysObjects(EPhysObjType::kElectron)[0]->GetCharge()) return false;
+  if(!(event.HasTrigger(kSingleMuOpenNoHF) or event.HasTrigger(kSingleEG5noHF))) return false;
+  if(event.HasAdditionalTowers()) return false;
+  if(event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack).size() > 3) return false;
   
-  return false;
-}
-
-/// checks if event has di muon (opposite sign)
-bool IsGoodForMuMu(Event &event)
-{
-  // Check trigger
-  if(!event.HasTrigger(kSingleMuOpenNoHF)) return false;
-  if(event.GetPhysObjects(EPhysObjType::kMuon).size() != 2) return false;
-  if(event.GetPhysObjects(EPhysObjType::kGeneralTrack).size() != 2 ) return false;
-  if(event.GetPhysObjects(EPhysObjType::kMuon)[0]->GetCharge() ==
-     event.GetPhysObjects(EPhysObjType::kMuon)[1]->GetCharge()) return false;
-  
-  return false;
+  return true;
 }
 
 
@@ -253,7 +236,6 @@ int main(int argc, char* argv[])
       inFilePath = argList[1];
       outFilePaths.push_back(argList[2]); // single mu
       outFilePaths.push_back(argList[3]); // muon electron
-      outFilePaths.push_back(argList[4]); // dimuon
     }
   }
   
@@ -295,9 +277,8 @@ int main(int argc, char* argv[])
     else if(argc==4){
       string flag = argv[1];
       if(flag == "TauTau"){
-        if(IsGoodForSingleMuon(*event))       events->AddEventToOutputTree(iEvent, outFilePaths[0], storeHLTtrees);
-        if(IsGoodForMuEle(*event))            events->AddEventToOutputTree(iEvent, outFilePaths[1], storeHLTtrees);
-        if(IsGoodForMuMu(*event))             events->AddEventToOutputTree(iEvent, outFilePaths[2], storeHLTtrees);
+        if(IsGoodForExclusivity_TauTau(*event))       events->AddEventToOutputTree(iEvent, outFilePaths[0], storeHLTtrees);
+        if(IsGoodForExclusivity_TauTau_tracks(*event))            events->AddEventToOutputTree(iEvent, outFilePaths[1], storeHLTtrees);
       }
     }
   }

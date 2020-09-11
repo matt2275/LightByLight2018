@@ -617,3 +617,61 @@ double Event::GetTotalZDCenergyNeg() const
   }
   return zdcEnergySum;
 }
+
+
+bool Event::HasAdditionalTowersTracks()
+{
+  for(auto tower : physObjects.at(EPhysObjType::kCaloTower)){
+
+    ECaloType subdetHad = tower->GetTowerSubdetHad();
+    ECaloType subdetEm = tower->GetTowerSubdetEm();
+        
+    if(subdetHad==kHFp || subdetHad==kHFm){ // Check HF exclusivity
+      if(tower->GetEnergy() > config.params("noiseThreshold"+caloName.at(subdetHad))){
+        return true;
+      }
+    }
+    if(subdetHad==kHB || subdetHad==kHE){ // Check HB and HE exclusivity
+      if(tower->GetEnergyHad() > config.params("noiseThreshold"+caloName.at(subdetHad))){
+        return true;
+      }
+    }
+    if(subdetEm==kEB){
+      if(IsOverlappingWithGoodTrack(*tower)) continue;
+      
+      if(tower->GetEnergyEm() > GetEmThresholdForTower(*tower)){
+        return true;
+      }
+    }
+    if(subdetEm==kEE){ // Check EB and EE exclusivity
+      if(fabs(tower->GetEta()) > config.params("maxEtaEEtower")) continue;
+      if(physObjectProcessor.IsInHEM(*tower)) continue;
+      if(IsOverlappingWithGoodTrack(*tower)) continue;
+      
+      if(tower->GetEnergyEm() > GetEmThresholdForTower(*tower)){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool Event::IsOverlappingWithGoodTrack(const PhysObject &tower)
+{
+  bool overlapsWithTrack = false;
+  
+  ECaloType subdet = tower.GetTowerSubdetEm();
+  double maxDeltaEta = (subdet == kEB ) ? config.params("maxDeltaEtaEB") : config.params("maxDeltaEtaEE");
+  double maxDeltaPhi = (subdet == kEB ) ? config.params("maxDeltaPhiEB") : config.params("maxDeltaPhiEE");
+  
+  for(auto track : GetGoodGeneralTracks()){
+    double deltaEta = fabs(track->GetEtaSC() - tower.GetEta());
+    double deltaPhi = fabs(track->GetPhiSC() - tower.GetPhi());
+    
+    if(deltaEta < maxDeltaEta && deltaPhi < maxDeltaPhi){
+      overlapsWithTrack = true;
+      break;
+    }
+  }
+  return overlapsWithTrack;
+}

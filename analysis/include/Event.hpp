@@ -33,6 +33,11 @@ public:
   /// the threshold is found.
   bool HasAdditionalTowers();
   
+    /// Check if there are calo towers above noise threshold. In ECal they must not overlap with
+  ///Good Tracks. Returns true as soon as the first tower above
+  /// the threshold is found.
+  bool HasAdditionalTowersTracks();
+  
   /// Check if there are calo towers above noise threshold. In ECal they must not overlap with
   /// photons nor electrons passing ID selections. Continues to loop over towers even after the
   /// first tower above the noise threshold is found.
@@ -56,6 +61,9 @@ public:
   /// Checks if given tower overlaps with one of the electrons passing selections
   bool IsOverlappingWithGoodElectron(const PhysObject &tower);
   
+    /// Checks if given tower overlaps with one of the tracks passing selections
+  bool IsOverlappingWithGoodTrack(const PhysObject &tower);
+  
   inline uint      GetRunNumber()   const { return runNumber;   }
   inline uint      GetLumiSection() const { return lumiSection; }
   inline ULong64_t GetEventNumber() const { return eventNumber; }
@@ -73,6 +81,8 @@ public:
   
   /// Returns total ZDC energy deposit on negative z-side
   double GetTotalZDCenergyNeg() const;
+  
+  
   
 private:
   map<ETrigger, bool> triggerValues; ///< Vactor of booleans corresponding to LbL triggers
