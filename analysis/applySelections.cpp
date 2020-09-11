@@ -151,7 +151,7 @@ bool IsGoodForExclusivity_TauTau(Event &event)
 {
   // Check trigger
   if(!(event.HasTrigger(kSingleMuOpenNoHF) or event.HasTrigger(kSingleEG5noHF))) return false;
-  if(event.HasAdditionalTowers()) return false;
+  if(event.HasAdditionalTowersTracks()) return false;
   return true;  
 }
 
@@ -160,7 +160,7 @@ bool IsGoodForExclusivity_TauTau_tracks(Event &event)
 {
   // Check trigger
   if(!(event.HasTrigger(kSingleMuOpenNoHF) or event.HasTrigger(kSingleEG5noHF))) return false;
-  if(event.HasAdditionalTowers()) return false;
+  if(event.HasAdditionalTowersTracks()) return false;
   if(event.GetPhysObjects(EPhysObjType::kGoodGeneralTrack).size() > 3) return false;
   
   return true;
