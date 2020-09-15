@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
     string setupFilePath = argv[2];
     sampleName = argv[3];
     if(flag == "TauTau"){
-      storeHLTtrees = true;
+      storeHLTtrees = false;
       vector<string> argList;
       ifstream file(setupFilePath);
       string str;
