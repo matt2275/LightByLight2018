@@ -189,6 +189,9 @@ int main(int argc, char* argv[])
   
   string inFilePath;
   vector<string> outFilePaths;
+  vector<string> CSVElements;
+  string CSVFile;
+  vector<int> OutputCounts;
   string sampleName = "";
   
   if(argc == 10){
@@ -233,7 +236,9 @@ int main(int argc, char* argv[])
       configPath = argList[0];
       inFilePath = argList[1];
       outFilePaths.push_back(argList[2]); // single mu
+	  OutputCounts.push_back(0);
       outFilePaths.push_back(argList[3]); // muon electron
+	  OutputCounts.push_back(0);
     }
   }
   
@@ -275,12 +280,37 @@ int main(int argc, char* argv[])
     else if(argc==4){
       string flag = argv[1];
       if(flag == "TauTau"){
-        if(IsGoodForExclusivity_TauTau(*event))       events->AddEventToOutputTree(iEvent, outFilePaths[0], storeHLTtrees);
-        if(IsGoodForExclusivity_TauTau_tracks(*event))            events->AddEventToOutputTree(iEvent, outFilePaths[1], storeHLTtrees);
+        if(IsGoodForExclusivity_TauTau(*event)){
+			events->AddEventToOutputTree(iEvent, outFilePaths[0], storeHLTtrees);
+			OutputCounts[0] += 1;
+			}
+	  if(IsGoodForExclusivity_TauTau_tracks(*event)){
+		  events->AddEventToOutputTree(iEvent, outFilePaths[1], storeHLTtrees);
+		  OutputCounts[1] += 1 ;
+		  }
       }
     }
   }
-  
+	if(argList.size > 4){	
+	  CSVFile = argList[6]
+  	  CSVElements.push_back(argList[4]); // Condor Cluster
+	  CSVElements.push_back(argList[5]); // Condor job number
+	  CSVElements.push_back(argList[0]); // config file
+	  CSVElements.push_back(argList[1]); // input file
+	  CSVElements.push_back(to_string(events->GetNevents()));
+	  CSVElements.push_back(argList[3]); // Output 1
+	  CSVElements.push_back(to_string(OutputCounts[0]));
+	  CSVElements.push_back(argList[4]); // Output 2
+	  CSVElements.push_back(to_string(OutputCounts[1]));
+	  string CSVLine;
+      for( string i : CSVElements){
+		CSVLine += i + ", ";
+	  }
+	  ofstream myfile;
+      myfile.open (CSVFile);
+	  myfile << CSVLine << "\n" ;
+	  myfile.close()
+	}
   cout<<"Saving output trees"<<endl;
   for(string outFilePath : outFilePaths) events->SaveOutputTree(outFilePath);
   
