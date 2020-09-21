@@ -191,6 +191,7 @@ int main(int argc, char* argv[])
   vector<string> outFilePaths;
   vector<string> CSVElements;
   string CSVFile;
+   vector<string> argList;
   vector<int> OutputCounts;
   string sampleName = "";
   
@@ -227,7 +228,6 @@ int main(int argc, char* argv[])
     sampleName = argv[3];
     if(flag == "TauTau"){
       storeHLTtrees = false;
-      vector<string> argList;
       ifstream file(setupFilePath);
       string str;
       while(getline(file, str)){
